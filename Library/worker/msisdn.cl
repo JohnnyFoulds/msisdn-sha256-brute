@@ -2,6 +2,9 @@
 #define NULL 0L
 #endif
 
+#define msisdn_min 600000000
+#define msisdn_max 899999999
+
 /*
  * Calculate the hash value for the input string.
  */
@@ -89,22 +92,38 @@ void get_msisdn(
     global unsigned int *output_candiates_len,
     global unsigned int *output_candiates)
 {
-    unsigned int current_msisdn = 722252318;
-    
-    // get the msisdn string representation to hash
-    uchar msisdn_str[10];
-    get_msisdn(current_msisdn, msisdn_str);
+    // calculate the window size
+    unsigned int msisdn_range = (msisdn_max - msisdn_min) + 1;
+    unsigned int window_size = msisdn_range / get_global_size(0);
 
-    // get the hash value
-    unsigned int loc_hash[8];
-    single_hash(msisdn_str, 10, loc_hash);
+    unsigned int msisdn_start = msisdn_min + (get_global_id(0) * window_size);
+    unsigned int msisdn_end = msisdn_start + window_size;
 
-    // assign the output
-    for (int i=0; i<8; i++) {
-        hash[i] = loc_hash[i];
+    for (unsigned int i = msisdn_start; i < msisdn_end; i++) {
+        // get the msisdn string representation to hash
+        uchar msisdn_str[10];
+        get_msisdn(i, msisdn_str);
+
+        // get the hash value
+        unsigned int loc_hash[8];
+        single_hash(msisdn_str, 10, loc_hash);
+        
+        // determine if the hash matches
+        bool matched = true;
+        for (int h = 0; h < 8; h++) {
+            if (hash[h] != loc_hash[h]) {
+                matched = false;
+                break;
+            }
+        }
+
+        // if it is a match add it to the output
+        if (matched) {
+            *output_candiates_len = *output_candiates_len + 1;
+            output_candiates[*output_candiates_len-1] = i;
+        }
     }
 
-    // convert the number to string
 
     //*output_candiates_len += 1;
     //output_candiates[*output_candiates_len-1] = current_msisdn;
