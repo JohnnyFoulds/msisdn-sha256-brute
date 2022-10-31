@@ -1,0 +1,10 @@
+pyopencl==2022.2.4
+ipykernel==6.15.1
+ipywidgets==7.7.1
+
+# pycryptodome==3.14.1
+# cryptography==37.0.2
+# ecdsa==0.17.0
+# pqdm==0.2.0
+# pykka==3.1.1
+# sqlitedict==2.0.0
